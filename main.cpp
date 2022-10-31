@@ -62,7 +62,9 @@ int main(int argc, char** argv)
     make_register_operand_f->setAttributes({});
 
     semantics_module->getFunction("byte_ptr")->setAttributes({});
+    semantics_module->getFunction("word_ptr")->setAttributes({});
     semantics_module->getFunction("byte_ptr.2")->setAttributes({});
+    semantics_module->getFunction("word_ptr.3")->setAttributes({});
 
     auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(context), { x86_register_file_ty->getPointerTo() }, false);
     auto func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "lifted", semantics_module.get());
@@ -84,10 +86,9 @@ int main(int argc, char** argv)
     }
 
     // Lift
-    byte code[] = { 0x80, 0xC4, 0x01 };
-    //std::vector<byte> code = { 0x80, 0xC4, 0x01  };
+    std::vector<byte> code = { 0x83, 0xC0, 0x01  };
     cs_insn* insn = NULL;
-    auto dr = cs_disasm(csh, code, sizeof(code), 0x1000, 1, &insn);
+    auto dr = cs_disasm(csh, code.data(), code.size(), 0x1000, 1, &insn);
     assert(1 == dr);
 
     auto register_file_arg = func->getArg(0);
@@ -159,11 +160,11 @@ int main(int argc, char** argv)
 
     void (*lifted)(x86_register_file*) = reinterpret_cast<void (*)(x86_register_file*)>(exec_engine->getFunctionAddress("lifted"));
 
-    AH(&register_file) = 3;
+    AX(&register_file) = 3;
 
     lifted(&register_file);
 
-    printf("AH=%x\n", AH(&register_file));
+    printf("AX=%x\n", AX(&register_file));
 
     // lifting algorithm
     // ---------------------------------------------
