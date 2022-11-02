@@ -160,11 +160,12 @@ int main(int argc, char** argv)
 
     void (*lifted)(x86_register_file*) = reinterpret_cast<void (*)(x86_register_file*)>(exec_engine->getFunctionAddress("lifted"));
 
-    AX(&register_file) = 3;
+    register_file.flags.zf = 1;
+    AX(&register_file) = 1;
 
     lifted(&register_file);
 
-    printf("AX=%x\n", AX(&register_file));
+    printf("AX=%x OF=%d SF=%d ZF=%d\n", AX(&register_file), register_file.flags.of != 0, register_file.flags.sf != 0, register_file.flags.zf != 0);
 
     // lifting algorithm
     // ---------------------------------------------
