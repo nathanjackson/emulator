@@ -8,6 +8,7 @@
 #include <llvm/Passes/PassBuilder.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetSelect.h>
+#include <llvm/Transforms/Utils/Cloning.h>
 
 #include <capstone/capstone.h>
 
@@ -124,13 +125,21 @@ int main(int argc, char** argv)
     assert(x86_insn_add);
     x86_insn_add->setAttributes({});
 
+    std::vector<llvm::CallInst*> insn_calls;
+
     switch (insn->id) {
     case X86_INS_ADD: {
-        irb->CreateCall(x86_insn_add, { register_file_arg, operands.at(0), operands.at(1) });
+        auto call_inst = irb->CreateCall(x86_insn_add, { register_file_arg, operands.at(0), operands.at(1) });
+        insn_calls.push_back(call_inst);
     } break;
     }
 
+    // force inlining of the instruction semantics
     irb->CreateRetVoid();
+    for (auto ci : insn_calls) {
+        llvm::InlineFunctionInfo ifi;
+        llvm::InlineFunction(*ci, ifi);
+    }
 
     // Optimization
     llvm::PassBuilder pass_builder;
@@ -148,8 +157,8 @@ int main(int argc, char** argv)
     llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
     mpm.run(*semantics_module, mam);
 
-    //func->print(llvm::outs());
-    semantics_module->print(llvm::outs(), nullptr);
+    func->print(llvm::outs());
+    //semantics_module->print(llvm::outs(), nullptr);
 
     // Setup ExecutionEngine
     std::string err_str = "";
@@ -161,7 +170,7 @@ int main(int argc, char** argv)
     void (*lifted)(x86_register_file*) = reinterpret_cast<void (*)(x86_register_file*)>(exec_engine->getFunctionAddress("lifted"));
 
     register_file.flags.zf = 1;
-    AX(&register_file) = 1;
+    AX(&register_file) = 0x7fff;
 
     lifted(&register_file);
 
