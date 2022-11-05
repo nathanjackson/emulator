@@ -19,8 +19,8 @@ target_link_libraries(emulator -lLLVM-14 -lcapstone)
 add_dependencies(emulator x86_semantics.bc)
 
 add_executable(test_x86_semantics
-        tests/arch/x86/semantics/test_aaa.cpp
-        tests/arch/x86/semantics/x86_semantics_test.cpp
-    ${SEMANTICS_SOURCES})
+    tests/arch/x86/semantics/test_aaa.cpp
+    tests/arch/x86/semantics/x86_semantics_test.cpp
+    tests/arch/x86/semantics/test_add.cpp ${SEMANTICS_SOURCES})
 target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
