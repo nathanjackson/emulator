@@ -77,13 +77,18 @@ int main(int argc, char** argv)
     assert(make_memory_operand_direct_f);
     make_memory_operand_direct_f->setAttributes({});
 
+
+
     semantics_module->getFunction("byte_ptr")->setAttributes({});
     semantics_module->getFunction("word_ptr")->setAttributes({});
     semantics_module->getFunction("byte_ptr.2")->setAttributes({});
     semantics_module->getFunction("word_ptr.3")->setAttributes({});
     semantics_module->getFunction("byte_ptr.5")->setAttributes({});
     semantics_module->getFunction("word_ptr.6")->setAttributes({});
-    semantics_module->getFunction("host_ptr")->setAttributes({});
+    auto host_ptr_f = semantics_module->getFunction("host_ptr");
+    if (host_ptr_f) {
+        host_ptr_f->setAttributes({});
+    };
 
     auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(context), { x86_register_file_ty->getPointerTo(), memory_ty->getPointerTo() }, false);
     auto func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "lifted", semantics_module.get());
@@ -147,7 +152,7 @@ int main(int argc, char** argv)
 
             auto disp_value = irb->getInt16(op.mem.disp);
 
-            if (X86_INS_INVALID == op.mem.base && X86_INS_INVALID == op.mem.index) {
+            if (X86_REG_INVALID == op.mem.base && X86_REG_INVALID == op.mem.index) {
                 irb->CreateCall(make_memory_operand_direct_f, { op_ptr, memory_arg, register_file_arg, size_value, segment_offset_value, disp_value });
             } else {
                 abort();
