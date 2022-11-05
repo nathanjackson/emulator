@@ -38,6 +38,9 @@ struct x86_register_file
     struct flags_register flags;
 };
 
+#define AF(rf) rf->flags.af
+#define CF(rf) rf->flags.cf
+
 #define AL(rf) *((byte *)(&((rf)->gp_regs[0])))
 #define AH(rf) *(((byte *)(&((rf)->gp_regs[0]))) + 1)
 #define AX(rf) *((word *)(&((rf)->gp_regs[0])))

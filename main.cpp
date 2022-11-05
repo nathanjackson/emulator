@@ -12,9 +12,9 @@
 
 #include <capstone/capstone.h>
 
-#include "x86/lifting/types.h"
-#include "x86/lifting/register_file.h"
-#include "x86/lifting/memory.h"
+#include "arch/x86/semantics/types.h"
+#include "arch/x86/semantics/register_file.h"
+#include "arch/x86/semantics/memory.h"
 
 int main(int argc, char** argv)
 {
