@@ -14,10 +14,14 @@
 
 #include "x86/lifting/types.h"
 #include "x86/lifting/register_file.h"
+#include "x86/lifting/memory.h"
 
 int main(int argc, char** argv)
 {
     x86_register_file register_file;
+    struct memory guest_mem;
+
+    guest_mem.ptr = malloc(65536);
 
     // Setup LLVM
     llvm::InitializeNativeTarget();
@@ -34,6 +38,8 @@ int main(int argc, char** argv)
     llvm::StructType* register_operand_ty = nullptr;
     llvm::StructType* immediate_operand_ty = nullptr;
     llvm::StructType* x86_register_file_ty = nullptr;
+    llvm::StructType* memory_ty = nullptr;
+    llvm::StructType* memory_operand_ty = nullptr;
 
     for (auto st : semantics_module->getIdentifiedStructTypes()) {
         //llvm::outs() << st->getName() << "\n";
@@ -45,12 +51,18 @@ int main(int argc, char** argv)
             x86_register_file_ty = st;
         } else if (st->getName() == "struct.operand") {
             operand_ty = st;
+        } else if (st->getName() == "struct.memory") {
+            memory_ty = st;
+        } else if (st->getName() == "struct.memory_operand") {
+            memory_operand_ty = st;
         }
     }
     assert(operand_ty);
     assert(register_operand_ty);
     assert(immediate_operand_ty);
     assert(x86_register_file_ty);
+    assert(memory_ty);
+    assert(memory_operand_ty);
 
     auto make_u8_immediate_f = semantics_module->getFunction("make_u8_immediate");
     assert(make_u8_immediate_f);
@@ -61,13 +73,19 @@ int main(int argc, char** argv)
     auto make_register_operand_f = semantics_module->getFunction("make_register_operand");
     assert(make_register_operand_f);
     make_register_operand_f->setAttributes({});
+    auto make_memory_operand_direct_f = semantics_module->getFunction("make_memory_operand_direct");
+    assert(make_memory_operand_direct_f);
+    make_memory_operand_direct_f->setAttributes({});
 
     semantics_module->getFunction("byte_ptr")->setAttributes({});
     semantics_module->getFunction("word_ptr")->setAttributes({});
     semantics_module->getFunction("byte_ptr.2")->setAttributes({});
     semantics_module->getFunction("word_ptr.3")->setAttributes({});
+    semantics_module->getFunction("byte_ptr.5")->setAttributes({});
+    semantics_module->getFunction("word_ptr.6")->setAttributes({});
+    semantics_module->getFunction("host_ptr")->setAttributes({});
 
-    auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(context), { x86_register_file_ty->getPointerTo() }, false);
+    auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(context), { x86_register_file_ty->getPointerTo(), memory_ty->getPointerTo() }, false);
     auto func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, "lifted", semantics_module.get());
     assert(func);
     auto entry_bb = llvm::BasicBlock::Create(context, "entry", func);
@@ -87,12 +105,13 @@ int main(int argc, char** argv)
     }
 
     // Lift
-    std::vector<byte> code = { 0x83, 0xC0, 0x01  };
+    std::vector<byte> code = { 0x03, 0x06, 0x00, 0x00 };
     cs_insn* insn = NULL;
     auto dr = cs_disasm(csh, code.data(), code.size(), 0x1000, 1, &insn);
     assert(1 == dr);
 
     auto register_file_arg = func->getArg(0);
+    auto memory_arg = func->getArg(1);
     // setup instruction operands
     std::vector<llvm::Value*> operands;
     for (int i = 0; i < insn->detail->x86.op_count; ++i) {
@@ -113,6 +132,26 @@ int main(int argc, char** argv)
             llvm::Value* op_ptr = irb->CreateAlloca(register_operand_ty);
             auto cs_reg = irb->getInt32(op.reg);
             irb->CreateCall(make_register_operand_f, { op_ptr, register_file_arg, cs_reg });
+            operands.push_back(irb->CreatePointerCast(op_ptr, operand_ty->getPointerTo()));
+        } break;
+        case X86_OP_MEM: {
+            llvm::Value* op_ptr = irb->CreateAlloca(memory_operand_ty);
+
+            auto size_value = irb->getInt64(op.size);
+
+            x86_reg segment = X86_REG_DS;
+            if (X86_REG_INVALID != op.mem.segment) {
+                segment = op.mem.segment;
+            }
+            auto segment_offset_value = irb->getInt64(segment_offset(segment));
+
+            auto disp_value = irb->getInt16(op.mem.disp);
+
+            if (X86_INS_INVALID == op.mem.base && X86_INS_INVALID == op.mem.index) {
+                irb->CreateCall(make_memory_operand_direct_f, { op_ptr, memory_arg, register_file_arg, size_value, segment_offset_value, disp_value });
+            } else {
+                abort();
+            }
             operands.push_back(irb->CreatePointerCast(op_ptr, operand_ty->getPointerTo()));
         } break;
         default:
@@ -157,8 +196,8 @@ int main(int argc, char** argv)
     llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
     mpm.run(*semantics_module, mam);
 
-    func->print(llvm::outs());
-    //semantics_module->print(llvm::outs(), nullptr);
+    //func->print(llvm::outs());
+    semantics_module->print(llvm::outs(), nullptr);
 
     // Setup ExecutionEngine
     std::string err_str = "";
@@ -167,12 +206,15 @@ int main(int argc, char** argv)
             .setVerifyModules(true)
             .create();
 
-    void (*lifted)(x86_register_file*) = reinterpret_cast<void (*)(x86_register_file*)>(exec_engine->getFunctionAddress("lifted"));
+    void (*lifted)(x86_register_file*, memory*) = reinterpret_cast<void (*)(x86_register_file*, memory*)>(exec_engine->getFunctionAddress("lifted"));
 
+    *((word*)guest_mem.ptr) = 0x1;
     register_file.flags.af = 1;
-    AX(&register_file) = 0x0E;
+    AX(&register_file) = 0x0;
 
-    lifted(&register_file);
+    printf("memory @ %p\n", guest_mem.ptr);
+
+    lifted(&register_file, &guest_mem);
 
     printf("AX=%x OF=%d SF=%d ZF=%d CF=%d PF=%d AF=%d\n", AX(&register_file), register_file.flags.of != 0, register_file.flags.sf != 0, register_file.flags.zf != 0, register_file.flags.cf != 0, register_file.flags.pf != 0, register_file.flags.af != 0);
 

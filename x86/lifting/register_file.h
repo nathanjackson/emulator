@@ -5,6 +5,10 @@
 #ifndef EMULATOR_REGISTER_FILE_H
 #define EMULATOR_REGISTER_FILE_H
 
+#include <stddef.h>
+
+#include <capstone/capstone.h>
+
 #include "types.h"
 
 #define NUM_GP_REGS 8
@@ -37,5 +41,19 @@ struct x86_register_file
 #define AL(rf) *((byte *)(&((rf)->gp_regs[0])))
 #define AH(rf) *(((byte *)(&((rf)->gp_regs[0]))) + 1)
 #define AX(rf) *((word *)(&((rf)->gp_regs[0])))
+
+inline size_t segment_offset(x86_reg seg)
+{
+    switch (seg) {
+    case X86_REG_CS: {
+        return 0;
+    } break;
+    case X86_REG_DS: {
+        return 1;
+    } break;
+    default:
+        abort();
+    }
+}
 
 #endif //EMULATOR_REGISTER_FILE_H
