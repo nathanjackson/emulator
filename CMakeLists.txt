@@ -17,9 +17,8 @@ add_custom_target(x86_semantics.bc ALL
         COMMAND_EXPAND_LISTS
         DEPENDS x86_semantics_bitcode)
 
-add_executable(emulator main.cpp)
-target_link_libraries(emulator -lLLVM-14 -lcapstone)
-add_dependencies(emulator x86_semantics.bc)
+add_executable(emulator test_floppy.cpp ${SEMANTICS_SOURCES})
+target_link_libraries(emulator -lcapstone)
 
 add_executable(test_x86_semantics
     tests/arch/x86/semantics/x86_semantics_test.cpp
