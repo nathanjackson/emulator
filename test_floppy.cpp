@@ -54,11 +54,11 @@ int main(int argc, char** argv)
 
     // main loop
     bool run = true;
+    cs_insn *insn = cs_malloc(handle);
     while (run) {
         const uint8_t* ptr = reinterpret_cast<uint8_t*>(get_host_ptr(&memory, CS(&register_file), IP(&register_file)));
         uint64_t addr = IP(&register_file);
         uint64_t size = 15;
-        cs_insn *insn = cs_malloc(handle);
         bool ok = cs_disasm_iter(handle, &ptr, &size, &addr, insn);
 
         if (!ok) {
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
             }
             operands.push_back(emuop);
 
-            cs_free(insn, 1);
+
         }
 
         switch (insn->id) {
@@ -107,6 +107,7 @@ int main(int argc, char** argv)
         }
     }
 
+    cs_free(insn, 1);
     cs_close(&handle);
 
     return 0;
