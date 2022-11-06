@@ -65,7 +65,20 @@ struct operand* make_register_operand(struct register_operand* out, struct x86_r
         out->base.size = 2;
         out->reg_ptr = &reg_file->gp_regs[2];
     } break;
-    };
 
+    case X86_REG_BL: {
+        out->base.size = 1;
+        out->reg_ptr = &reg_file->gp_regs[3];
+    } break;
+    case X86_REG_BH: {
+        out->base.size = 1;
+        out->reg_ptr = ((byte*)&reg_file->gp_regs[3]) + 1;
+    } break;
+    case X86_REG_BX: {
+        out->base.size = 2;
+        out->reg_ptr = &reg_file->gp_regs[3];
+    } break;
+
+    };
     return (struct operand*)out;
 }

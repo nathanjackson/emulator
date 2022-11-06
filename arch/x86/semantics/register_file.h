@@ -59,6 +59,10 @@ struct x86_register_file
 #define DH(rf) *(((byte *)(&((rf)->gp_regs[2]))) + 1)
 #define DX(rf) *((word *)(&((rf)->gp_regs[2])))
 
+#define BL(rf) *((byte *)(&((rf)->gp_regs[3])))
+#define BH(rf) *(((byte *)(&((rf)->gp_regs[3]))) + 1)
+#define BX(rf) *((word *)(&((rf)->gp_regs[3])))
+
 #define SP(rf) *((word *)(&((rf)->gp_regs[4])))
 
 #define IP(rf) (rf)->ip
