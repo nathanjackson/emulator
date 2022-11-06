@@ -57,6 +57,13 @@ struct x86_register_file
 #define DH(rf) *(((byte *)(&((rf)->gp_regs[2]))) + 1)
 #define DX(rf) *((word *)(&((rf)->gp_regs[2])))
 
+#define SP(rf) *((word *)(&((rf)->gp_regs[4])))
+
+#define IP(rf) (rf)->ip
+
+#define CS(rf) *((word *)(&((rf)->seg_regs[0])))
+#define SS(rf) *((word *)(&((rf)->seg_regs[2])))
+
 inline size_t segment_offset(x86_reg seg)
 {
     switch (seg) {
@@ -65,6 +72,9 @@ inline size_t segment_offset(x86_reg seg)
     } break;
     case X86_REG_DS: {
         return 1;
+    } break;
+    case X86_REG_SS: {
+        return 2;
     } break;
     default:
         abort();
