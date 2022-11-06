@@ -44,6 +44,7 @@ struct x86_register_file
 #define PF(rf) rf->flags.pf
 #define SF(rf) rf->flags.sf
 #define OF(rf) rf->flags.of
+#define DF(rf) rf->flags.df
 
 #define AL(rf) *((byte *)(&((rf)->gp_regs[0])))
 #define AH(rf) *(((byte *)(&((rf)->gp_regs[0]))) + 1)
