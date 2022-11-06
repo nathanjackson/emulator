@@ -39,6 +39,33 @@ struct operand* make_register_operand(struct register_operand* out, struct x86_r
         out->base.size = 2;
         out->reg_ptr = &reg_file->gp_regs[0];
     } break;
+
+    case X86_REG_CL: {
+        out->base.size = 1;
+        out->reg_ptr = &reg_file->gp_regs[1];
+    } break;
+    case X86_REG_CH: {
+        out->base.size = 1;
+        out->reg_ptr = ((byte*)&reg_file->gp_regs[1]) + 1;
+    } break;
+    case X86_REG_CX: {
+        out->base.size = 2;
+        out->reg_ptr = &reg_file->gp_regs[1];
+    } break;
+
+    case X86_REG_DL: {
+        out->base.size = 1;
+        out->reg_ptr = &reg_file->gp_regs[2];
+    } break;
+    case X86_REG_DH: {
+        out->base.size = 1;
+        out->reg_ptr = ((byte*)&reg_file->gp_regs[2]) + 1;
+    } break;
+    case X86_REG_DX: {
+        out->base.size = 2;
+        out->reg_ptr = &reg_file->gp_regs[2];
+    } break;
     };
+
     return (struct operand*)out;
 }

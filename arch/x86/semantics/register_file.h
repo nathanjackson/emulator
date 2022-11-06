@@ -49,6 +49,14 @@ struct x86_register_file
 #define AH(rf) *(((byte *)(&((rf)->gp_regs[0]))) + 1)
 #define AX(rf) *((word *)(&((rf)->gp_regs[0])))
 
+#define CL(rf) *((byte *)(&((rf)->gp_regs[1])))
+#define CH(rf) *(((byte *)(&((rf)->gp_regs[1]))) + 1)
+#define CX(rf) *((word *)(&((rf)->gp_regs[1])))
+
+#define DL(rf) *((byte *)(&((rf)->gp_regs[2])))
+#define DH(rf) *(((byte *)(&((rf)->gp_regs[2]))) + 1)
+#define DX(rf) *((word *)(&((rf)->gp_regs[2])))
+
 inline size_t segment_offset(x86_reg seg)
 {
     switch (seg) {
