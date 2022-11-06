@@ -5,6 +5,7 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/immediate_operand.c
     arch/x86/semantics/register_operand.c
     arch/x86/semantics/memory_operand.c
+    arch/x86/semantics/adc.c
     arch/x86/semantics/add.c
     arch/x86/semantics/aaa.c
     arch/x86/semantics/aad.c arch/x86/semantics/aam.c arch/x86/semantics/aas.c)
@@ -25,6 +26,6 @@ add_executable(test_x86_semantics
     tests/arch/x86/semantics/test_aaa.cpp
     tests/arch/x86/semantics/test_add.cpp
     tests/arch/x86/semantics/test_aad.cpp
-    ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_aam.cpp tests/arch/x86/semantics/test_aas.cpp)
+    ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_aam.cpp tests/arch/x86/semantics/test_aas.cpp tests/arch/x86/semantics/test_adc.cpp)
 target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
