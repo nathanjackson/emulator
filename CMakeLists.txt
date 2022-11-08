@@ -8,7 +8,7 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/adc.c
     arch/x86/semantics/add.c
     arch/x86/semantics/aaa.c
-    arch/x86/semantics/aad.c arch/x86/semantics/aam.c arch/x86/semantics/aas.c arch/x86/semantics/and.c arch/x86/semantics/call.c arch/x86/semantics/memory.c arch/x86/semantics/cbw.c arch/x86/semantics/clc.c arch/x86/semantics/cld.c arch/x86/semantics/cli.c arch/x86/semantics/cmc.c arch/x86/semantics/cmp.c arch/x86/semantics/register_file.c)
+    arch/x86/semantics/aad.c arch/x86/semantics/aam.c arch/x86/semantics/aas.c arch/x86/semantics/and.c arch/x86/semantics/call.c arch/x86/semantics/memory.c arch/x86/semantics/cbw.c arch/x86/semantics/clc.c arch/x86/semantics/cld.c arch/x86/semantics/cli.c arch/x86/semantics/cmc.c arch/x86/semantics/cmp.c arch/x86/semantics/register_file.c arch/x86/semantics/cwd.c)
 
 add_library(x86_semantics_bitcode OBJECT ${SEMANTICS_SOURCES})
 target_compile_options(x86_semantics_bitcode PUBLIC -flto)
@@ -25,7 +25,7 @@ add_executable(test_x86_semantics
     tests/arch/x86/semantics/test_aaa.cpp
     tests/arch/x86/semantics/test_add.cpp
     tests/arch/x86/semantics/test_aad.cpp
-    ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_aam.cpp tests/arch/x86/semantics/test_aas.cpp tests/arch/x86/semantics/test_adc.cpp tests/arch/x86/semantics/test_and.cpp tests/arch/x86/semantics/test_call.cpp tests/arch/x86/semantics/test_cbw.cpp tests/arch/x86/semantics/test_clc.cpp tests/arch/x86/semantics/test_cld.cpp tests/arch/x86/semantics/test_cli.cpp tests/arch/x86/semantics/test_cmc.cpp tests/arch/x86/semantics/test_cmp.cpp)
+    ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_aam.cpp tests/arch/x86/semantics/test_aas.cpp tests/arch/x86/semantics/test_adc.cpp tests/arch/x86/semantics/test_and.cpp tests/arch/x86/semantics/test_call.cpp tests/arch/x86/semantics/test_cbw.cpp tests/arch/x86/semantics/test_clc.cpp tests/arch/x86/semantics/test_cld.cpp tests/arch/x86/semantics/test_cli.cpp tests/arch/x86/semantics/test_cmc.cpp tests/arch/x86/semantics/test_cmp.cpp tests/arch/x86/semantics/test_cwd.cpp)
 target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
 target_compile_options(test_x86_semantics PUBLIC)
