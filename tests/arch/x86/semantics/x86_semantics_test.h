@@ -7,10 +7,14 @@
 
 #include <array>
 
+#include <gtest/gtest.h>
+
+extern "C"
+{
 #include "arch/x86/semantics/register_file.h"
 #include "arch/x86/semantics/memory.h"
+}
 
-#include <gtest/gtest.h>
 
 class x86_semantics_test : public ::testing::Test
 {

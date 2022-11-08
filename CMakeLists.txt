@@ -8,7 +8,7 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/adc.c
     arch/x86/semantics/add.c
     arch/x86/semantics/aaa.c
-    arch/x86/semantics/aad.c arch/x86/semantics/aam.c arch/x86/semantics/aas.c arch/x86/semantics/and.c arch/x86/semantics/call.c arch/x86/semantics/memory.c arch/x86/semantics/cbw.c arch/x86/semantics/clc.c arch/x86/semantics/cld.c arch/x86/semantics/cli.c arch/x86/semantics/cmc.c arch/x86/semantics/cmp.c)
+    arch/x86/semantics/aad.c arch/x86/semantics/aam.c arch/x86/semantics/aas.c arch/x86/semantics/and.c arch/x86/semantics/call.c arch/x86/semantics/memory.c arch/x86/semantics/cbw.c arch/x86/semantics/clc.c arch/x86/semantics/cld.c arch/x86/semantics/cli.c arch/x86/semantics/cmc.c arch/x86/semantics/cmp.c arch/x86/semantics/register_file.c)
 
 add_library(x86_semantics_bitcode OBJECT ${SEMANTICS_SOURCES})
 target_compile_options(x86_semantics_bitcode PUBLIC -flto)

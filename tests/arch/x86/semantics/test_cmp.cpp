@@ -7,6 +7,8 @@ extern "C"
 {
 #include "arch/x86/semantics/register_operand.h"
 void x86_insn_cmp(struct x86_register_file*, struct operand*, struct operand*);
+void x86_insn_cmpsb(struct x86_register_file*, struct memory*);
+void x86_insn_cmpsw(struct x86_register_file*, struct memory*);
 }
 
 TEST_F(x86_semantics_test, CMP)
@@ -57,4 +59,64 @@ TEST_F(x86_semantics_test, CMP)
     EXPECT_FALSE(ZF(register_file));
     EXPECT_FALSE(AF(register_file));
     EXPECT_FALSE(PF(register_file));
+}
+
+TEST_F(x86_semantics_test, CMPSB)
+{
+    std::string str1 = "foo";
+    std::string str2 = "bar";
+
+    DS(register_file) = 0x0;
+    SI(register_file) = 0x100;
+    ES(register_file) = 0x0;
+    DI(register_file) = 0x200;
+    DF(register_file) = 0;
+    memory_write(mem, DS(register_file), SI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    memory_write(mem, ES(register_file), DI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    x86_insn_cmpsb(register_file, mem);
+    EXPECT_TRUE(ZF(register_file));
+    EXPECT_EQ(SI(register_file), 0x101);
+    EXPECT_EQ(DI(register_file), 0x201);
+
+    DS(register_file) = 0x0;
+    SI(register_file) = 0x100;
+    ES(register_file) = 0x0;
+    DI(register_file) = 0x200;
+    DF(register_file) = 0;
+    memory_write(mem, DS(register_file), SI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    memory_write(mem, ES(register_file), DI(register_file), str2.size(), reinterpret_cast<const byte *>(str2.data()));
+    x86_insn_cmpsb(register_file, mem);
+    EXPECT_FALSE(ZF(register_file));
+    EXPECT_EQ(SI(register_file), 0x101);
+    EXPECT_EQ(DI(register_file), 0x201);
+}
+
+TEST_F(x86_semantics_test, CMPSW)
+{
+    std::string str1 = "foo";
+    std::string str2 = "bar";
+
+    DS(register_file) = 0x0;
+    SI(register_file) = 0x100;
+    ES(register_file) = 0x0;
+    DI(register_file) = 0x200;
+    DF(register_file) = 0;
+    memory_write(mem, DS(register_file), SI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    memory_write(mem, ES(register_file), DI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    x86_insn_cmpsw(register_file, mem);
+    EXPECT_TRUE(ZF(register_file));
+    EXPECT_EQ(SI(register_file), 0x102);
+    EXPECT_EQ(DI(register_file), 0x202);
+
+    DS(register_file) = 0x0;
+    SI(register_file) = 0x100;
+    ES(register_file) = 0x0;
+    DI(register_file) = 0x200;
+    DF(register_file) = 0;
+    memory_write(mem, DS(register_file), SI(register_file), str1.size(), reinterpret_cast<const byte *>(str1.data()));
+    memory_write(mem, ES(register_file), DI(register_file), str2.size(), reinterpret_cast<const byte *>(str2.data()));
+    x86_insn_cmpsw(register_file, mem);
+    EXPECT_FALSE(ZF(register_file));
+    EXPECT_EQ(SI(register_file), 0x102);
+    EXPECT_EQ(DI(register_file), 0x202);
 }

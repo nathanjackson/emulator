@@ -65,26 +65,18 @@ struct x86_register_file
 
 #define SP(rf) *((word *)(&((rf)->gp_regs[4])))
 
+#define SI(rf) *((word *)(&((rf)->gp_regs[6])))
+#define DI(rf) *((word *)(&((rf)->gp_regs[7])))
+
 #define IP(rf) (rf)->ip
 
 #define CS(rf) *((word *)(&((rf)->seg_regs[0])))
+#define DS(rf) *((word *)(&((rf)->seg_regs[1])))
 #define SS(rf) *((word *)(&((rf)->seg_regs[2])))
+#define ES(rf) *((word *)(&((rf)->seg_regs[3])))
 
-inline size_t segment_offset(x86_reg seg)
-{
-    switch (seg) {
-    case X86_REG_CS: {
-        return 0;
-    } break;
-    case X86_REG_DS: {
-        return 1;
-    } break;
-    case X86_REG_SS: {
-        return 2;
-    } break;
-    default:
-        abort();
-    }
-}
+uint16_t get_register_value(struct x86_register_file* register_file, x86_reg reg);
+
+size_t segment_offset(x86_reg seg);
 
 #endif //EMULATOR_REGISTER_FILE_H

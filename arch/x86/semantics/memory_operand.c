@@ -9,10 +9,10 @@ static void* host_ptr(struct memory_operand* mem_op)
     word segment = mem_op->register_file->seg_regs[mem_op->segment_offset];
     word offset_in_segment = mem_op->displacement;
     if (X86_REG_INVALID != mem_op->base_reg) {
-        offset_in_segment += mem_op->register_file->gp_regs[mem_op->base_reg];
+        offset_in_segment += get_register_value(mem_op->register_file, mem_op->base_reg);
     }
     if (X86_REG_INVALID != mem_op->index_reg) {
-        offset_in_segment += mem_op->register_file->gp_regs[mem_op->index_reg];
+        offset_in_segment += get_register_value(mem_op->register_file, mem_op->index_reg);
     }
     size_t host_offset = segment * 16 + offset_in_segment;
     return mem_op->mem->ptr + host_offset;
@@ -35,7 +35,7 @@ const static struct operand_vtable vtable = {
         .word_ptr = &word_ptr,
 };
 
-struct operand* make_memory_operand_direct(struct memory_operand* out, struct memory* mem, struct x86_register_file* reg_file, size_t size, size_t segment_offset, word addr)
+struct operand* make_memory_operand_direct(struct memory_operand* out, struct memory* mem, struct x86_register_file* reg_file, size_t size, x86_reg seg, word addr)
 {
     out->base.vtable = &vtable;
     out->base.size = size;
@@ -43,9 +43,25 @@ struct operand* make_memory_operand_direct(struct memory_operand* out, struct me
     out->mem = mem;
     out->register_file = reg_file;
 
-    out->segment_offset = segment_offset;
+    out->segment_offset = segment_offset(seg);
     out->displacement = addr;
     out->base_reg = X86_REG_INVALID;
+    out->index_reg = X86_REG_INVALID;
+
+    return (struct operand*)out;
+}
+
+struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory* mem, struct x86_register_file* register_file, size_t size, x86_reg seg, x86_reg reg)
+{
+    out->base.vtable = &vtable;
+    out->base.size = size;
+
+    out->mem = mem;
+    out->register_file = register_file;
+
+    out->segment_offset = segment_offset(seg);
+    out->displacement = 0;
+    out->base_reg = reg;
     out->index_reg = X86_REG_INVALID;
 
     return (struct operand*)out;
