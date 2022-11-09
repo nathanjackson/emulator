@@ -23,7 +23,7 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/cmp.c
     arch/x86/semantics/cwd.c
     arch/x86/semantics/daa.c
-    arch/x86/semantics/das.c arch/x86/semantics/dec.c)
+    arch/x86/semantics/das.c arch/x86/semantics/dec.c arch/x86/semantics/imul.c)
 
 add_library(x86_semantics_bitcode OBJECT ${SEMANTICS_SOURCES})
 target_compile_options(x86_semantics_bitcode PUBLIC -flto)
@@ -55,6 +55,6 @@ add_executable(test_x86_semantics
     tests/arch/x86/semantics/test_daa.cpp
     tests/arch/x86/semantics/test_das.cpp
     tests/arch/x86/semantics/test_dec.cpp
-    ${SEMANTICS_SOURCES})
+    ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_imul.cpp)
 target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
