@@ -7,7 +7,11 @@
 #include <fstream>
 #include <vector>
 
+#include <llvm/Support/TargetSelect.h>
+
 #include <capstone/capstone.h>
+
+#include "arch/x86/lifter.h"
 
 extern "C"
 {
@@ -25,6 +29,13 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    // Setup LLVM
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::InitializeNativeTargetAsmPrinter();
+
+    llvm::LLVMContext llvm_context;
+
     // Setup System
     struct x86_register_file register_file;
     CS(&register_file) = 0x0;
@@ -34,6 +45,9 @@ int main(int argc, char** argv)
             .ptr = mem.data(),
     };
 
+    // Setup Lifter
+    lifter lifter(llvm_context, &register_file, &memory);
+
     // Load boot sector into memory at 0000:7C00
     std::ifstream floppy;
     floppy.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -41,74 +55,8 @@ int main(int argc, char** argv)
     uint8_t* dest = (reinterpret_cast<uint8_t*>(memory.ptr) + 0x7C00);
     floppy.read((char*)dest, 512);
 
-    // Setup Capstone
-    csh handle = 0;
-    if (CS_ERR_OK != cs_open(CS_ARCH_X86, CS_MODE_16, &handle)) {
-        std::cerr << "Could not create capstone handle.\n";
-        return 2;
-    }
-    if (CS_ERR_OK != cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON)) {
-        std::cerr << "Could not configure capstone.\n";
-        return 3;
-    }
-
-    // main loop
-    bool run = true;
-    cs_insn *insn = cs_malloc(handle);
-    while (run) {
-        const uint8_t* ptr = reinterpret_cast<uint8_t*>(get_host_ptr(&memory, CS(&register_file), IP(&register_file)));
-        uint64_t addr = IP(&register_file);
-        uint64_t size = 15;
-        bool ok = cs_disasm_iter(handle, &ptr, &size, &addr, insn);
-
-        if (!ok) {
-            run = false;
-            break;
-        }
-
-        // adapt operands
-        std::vector<struct operand*> operands;
-        for (int i = 0; i < insn->detail->x86.op_count; ++i) {
-            cs_x86_op& op = insn->detail->x86.operands[i];
-            struct operand* emuop = NULL;
-            switch (op.type) {
-            case X86_OP_IMM: {
-                struct immediate_operand* imm = new struct immediate_operand;
-
-                if (sizeof(byte) == op.size) {
-                    emuop = make_u8_immediate(imm, op.imm);
-                } else if (sizeof(word) == op.size) {
-                    emuop = make_u16_immediate(imm, op.imm);
-                }
-                } break;
-                case X86_OP_REG: {
-                    struct register_operand* reg = new struct register_operand;
-                    emuop = make_register_operand(reg, &register_file, op.reg);
-                } break;
-                default: {
-                    run = false;
-                }break;
-            }
-            operands.push_back(emuop);
-
-
-        }
-
-        switch (insn->id) {
-        default: {
-            std::cerr << "Instruction not yet implemented\n";
-            run = false;
-        } break;
-        }
-
-        // cleanup
-        for (auto emuop : operands) {
-            delete emuop;
-        }
-    }
-
-    cs_free(insn, 1);
-    cs_close(&handle);
+    // lift block
+    lifter.lift(CS(&register_file), IP(&register_file));
 
     return 0;
 }
