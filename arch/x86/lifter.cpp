@@ -13,17 +13,12 @@
 
 #include "lifter.h"
 
-lifter::lifter(llvm::LLVMContext& llvm_context,
+lifter::lifter(llvm::Module* module,
                x86_register_file* register_file, struct memory* guest_memory) :
-        register_file(register_file), guest_memory(guest_memory), llvm_context(llvm_context)
+        register_file(register_file), guest_memory(guest_memory), module(module)
 {
-    llvm::SMDiagnostic err;
-    semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
-    assert(semantics_module);
-
     // Clear attributes to enable optimization.
-    for (auto& func : semantics_module->getFunctionList()) {
-        llvm::outs() << "function: " << func.getName() << "\n";
+    for (auto& func : module->getFunctionList()) {
         func.setAttributes({});
     }
 
@@ -37,17 +32,17 @@ lifter::lifter(llvm::LLVMContext& llvm_context,
         abort();
     }
 
-    make_u8_immediate_f = semantics_module->getFunction("make_u8_immediate");
+    make_u8_immediate_f = module->getFunction("make_u8_immediate");
     assert(make_u8_immediate_f);
-    make_u16_immediate_f = semantics_module->getFunction("make_u16_immediate");
+    make_u16_immediate_f = module->getFunction("make_u16_immediate");
     assert(make_u16_immediate_f);
-    make_register_operand_f = semantics_module->getFunction("make_register_operand");
+    make_register_operand_f = module->getFunction("make_register_operand");
     assert(make_register_operand_f);
-    make_memory_operand_direct_f = semantics_module->getFunction("make_memory_operand_direct");
+    make_memory_operand_direct_f = module->getFunction("make_memory_operand_direct");
     assert(make_memory_operand_direct_f);
 
     // lookup structs
-    for (auto st : semantics_module->getIdentifiedStructTypes()) {
+    for (auto st : module->getIdentifiedStructTypes()) {
         if (st->getName() == "struct.immediate_operand") {
             immediate_operand_ty = st;
         } else if (st->getName() == "struct.register_operand") {
@@ -83,12 +78,12 @@ llvm::Function* lifter::lift(word segment, word addr)
     std::copy(host_ptr, host_ptr + buffer.size(), buffer.begin());
 
     // create a new function for the block we're going to lift
-    auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(llvm_context), { x86_register_file_ty->getPointerTo(), memory_ty->getPointerTo() }, false);
+    auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(module->getContext()), { x86_register_file_ty->getPointerTo(), memory_ty->getPointerTo() }, false);
     std::stringstream ss;
     ss << std::hex << segment << "_" << addr << "_lifted";
-    auto func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, ss.str(), semantics_module.get());
+    auto func = llvm::Function::Create(func_type, llvm::Function::ExternalLinkage, ss.str(), module);
     assert(func);
-    auto entry_bb = llvm::BasicBlock::Create(llvm_context, "entry", func);
+    auto entry_bb = llvm::BasicBlock::Create(module->getContext(), "entry", func);
     assert(entry_bb);
 
     // Setup the IR Builder
@@ -119,14 +114,15 @@ llvm::Function* lifter::lift(word segment, word addr)
         switch (op.type) {
         case X86_OP_IMM: {
             llvm::Value* op_ptr = irb->CreateAlloca(immediate_operand_ty);
+            llvm::Value* dyn_ptr = nullptr;
             if (sizeof(byte) == op.size) {
                 llvm::Value* imm_val = irb->getInt8(op.imm);
-                irb->CreateCall(make_u8_immediate_f, { op_ptr, imm_val });
+                dyn_ptr = irb->CreateCall(make_u8_immediate_f, { op_ptr, imm_val });
             } else if (sizeof(word) == op.size) {
                 llvm::Value* imm_val = irb->getInt16(op.imm);
-                irb->CreateCall(make_u16_immediate_f, { op_ptr, imm_val });
+                dyn_ptr = irb->CreateCall(make_u16_immediate_f, { op_ptr, imm_val });
             }
-            operands.push_back(irb->CreatePointerCast(op_ptr, operand_ty->getPointerTo()));
+            operands.push_back(dyn_ptr);
         } break;
         case X86_OP_REG: {
             llvm::Value* op_ptr = irb->CreateAlloca(register_operand_ty);
@@ -164,9 +160,9 @@ llvm::Function* lifter::lift(word segment, word addr)
     std::vector<llvm::CallInst*> insn_calls;
     switch (insn->id) {
     case X86_INS_JMP: {
-        auto f = semantics_module->getFunction("x86_insn_jmp");
+        auto f = module->getFunction("x86_insn_jmp");
         assert(f);
-        auto ci = irb->CreateCall(f, { operands.at(0) });
+        auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0) });
         insn_calls.push_back(ci);
     } break;
     default: {
@@ -175,8 +171,10 @@ llvm::Function* lifter::lift(word segment, word addr)
     } break;
     }
 
+    // terminate the guest code block
     irb->CreateRetVoid();
 
+    // inline calls to instructions
     for (auto ci : insn_calls) {
         llvm::InlineFunctionInfo ifi;
         llvm::InlineFunction(*ci, ifi);
@@ -196,7 +194,7 @@ llvm::Function* lifter::lift(word segment, word addr)
     pass_builder.crossRegisterProxies(lam, fam, cam, mam);
 
     llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
-    mpm.run(*semantics_module, mam);
+    mpm.run(*module, mam);
 
     //semantics_module->print(llvm::outs(), NULL);
 

@@ -30,9 +30,6 @@ int main(int argc, char** argv)
 
     llvm::LLVMContext context;
 
-    llvm::SMDiagnostic err;
-    auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, context);
-    assert(semantics_module);
 
     llvm::StructType* operand_ty = nullptr;
     llvm::StructType* register_operand_ty = nullptr;

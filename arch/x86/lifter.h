@@ -19,7 +19,7 @@ extern "C"
 class lifter
 {
 public:
-    lifter(llvm::LLVMContext&, x86_register_file* register_file, struct memory* guest_memory);
+    lifter(llvm::Module* module, x86_register_file* register_file, struct memory* guest_memory);
     ~lifter();
 
     llvm::Function* lift(word segment, word addr);
@@ -28,8 +28,7 @@ private:
     struct x86_register_file* register_file;
     struct memory* guest_memory;
 
-    llvm::LLVMContext& llvm_context;
-    std::unique_ptr<llvm::Module> semantics_module;
+    llvm::Module* module;
 
     llvm::StructType* operand_ty;
     llvm::StructType* register_operand_ty;

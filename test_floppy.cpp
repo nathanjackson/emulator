@@ -7,6 +7,9 @@
 #include <fstream>
 #include <vector>
 
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetSelect.h>
 
 #include <capstone/capstone.h>
@@ -45,8 +48,16 @@ int main(int argc, char** argv)
             .ptr = mem.data(),
     };
 
+    llvm::SMDiagnostic err;
+    auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
+    assert(semantics_module);
+
     // Setup Lifter
-    lifter lifter(llvm_context, &register_file, &memory);
+    lifter lifter(semantics_module.get(), &register_file, &memory);
+
+    // Setup Execution Engine
+    std::string err_str = "";
+    auto exec_engine = llvm::EngineBuilder(std::move(semantics_module)).setErrorStr(&err_str).setVerifyModules(true).create();
 
     // Load boot sector into memory at 0000:7C00
     std::ifstream floppy;
@@ -56,7 +67,19 @@ int main(int argc, char** argv)
     floppy.read((char*)dest, 512);
 
     // lift block
-    lifter.lift(CS(&register_file), IP(&register_file));
+    auto func = lifter.lift(CS(&register_file), IP(&register_file));
+    assert(func);
+
+    // code gen
+    auto guest_block = reinterpret_cast<void(*)(struct x86_register_file*, struct memory*)>(exec_engine->getFunctionAddress(func->getName().str()));
+    assert(guest_block);
+
+    std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+
+    // run it!
+    guest_block(&register_file, &memory);
+
+    std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
 
     return 0;
 }
