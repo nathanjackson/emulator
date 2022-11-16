@@ -48,17 +48,6 @@ int main(int argc, char** argv)
             .ptr = mem.data(),
     };
 
-    llvm::SMDiagnostic err;
-    auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
-    assert(semantics_module);
-
-    // Setup Lifter
-    lifter lifter(semantics_module.get(), &register_file, &memory);
-
-    // Setup Execution Engine
-    std::string err_str = "";
-    auto exec_engine = llvm::EngineBuilder(std::move(semantics_module)).setErrorStr(&err_str).setVerifyModules(true).create();
-
     // Load boot sector into memory at 0000:7C00
     std::ifstream floppy;
     floppy.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -66,18 +55,30 @@ int main(int argc, char** argv)
     uint8_t* dest = (reinterpret_cast<uint8_t*>(memory.ptr) + 0x7C00);
     floppy.read((char*)dest, 512);
 
-    // lift block
-    auto func = lifter.lift(CS(&register_file), IP(&register_file));
-    assert(func);
+    for (int i = 0; i < 3; i++) {
+        llvm::SMDiagnostic err;
+        auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
+        assert(semantics_module);
 
-    // code gen
-    auto guest_block = reinterpret_cast<void(*)(struct x86_register_file*, struct memory*)>(exec_engine->getFunctionAddress(func->getName().str()));
-    assert(guest_block);
+        // Setup Lifter
+        lifter lifter(semantics_module.get(), &register_file, &memory);
 
-    std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+        // Setup Execution Engine
+        std::string err_str = "";
+        auto exec_engine = llvm::EngineBuilder(std::move(semantics_module)).setErrorStr(&err_str).setVerifyModules(true).create();
 
-    // run it!
-    guest_block(&register_file, &memory);
+        // lift block
+        auto func = lifter.lift(CS(&register_file), IP(&register_file));
+        assert(func);
+
+        // code gen
+        auto guest_block = reinterpret_cast<void(*)(struct x86_register_file*, struct memory*)>(exec_engine->getFunctionAddress(func->getName().str()));
+        assert(guest_block);
+
+        std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+        // run it!
+        guest_block(&register_file, &memory);
+    }
 
     std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
 

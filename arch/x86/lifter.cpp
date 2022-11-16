@@ -159,6 +159,12 @@ llvm::Function* lifter::lift(word segment, word addr)
 
     std::vector<llvm::CallInst*> insn_calls;
     switch (insn->id) {
+    case X86_INS_CLI: {
+        auto f = module->getFunction("x86_insn_cli");
+        assert(f);
+        auto ci = irb->CreateCall(f, { register_file_arg });
+        insn_calls.push_back(ci);
+    } break;
     case X86_INS_JMP: {
         auto f = module->getFunction("x86_insn_jmp");
         assert(f);
@@ -169,6 +175,18 @@ llvm::Function* lifter::lift(word segment, word addr)
         std::cerr << "Instruction not yet supported\n";
         abort();
     } break;
+    }
+
+    if (!cs_insn_group(capstone_handle, insn.get(), X86_GRP_JUMP)) {
+        auto reg_val = irb->getInt32(X86_REG_IP);
+        auto get_reg_val_f = module->getFunction("get_register_value");
+        auto set_reg_val_f = module->getFunction("set_register_value_word");
+        auto insn_size = irb->getInt16(insn->size);
+
+        auto pc_val = irb->CreateCall(get_reg_val_f, { register_file_arg, reg_val });
+        insn_calls.push_back(pc_val);
+        auto new_pc_val = irb->CreateCall(set_reg_val_f, { register_file_arg, reg_val, irb->CreateAdd(pc_val, insn_size) });
+        insn_calls.push_back(new_pc_val);
     }
 
     // terminate the guest code block

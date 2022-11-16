@@ -22,6 +22,21 @@ uint16_t get_register_value(struct x86_register_file* register_file, x86_reg reg
     case X86_REG_SI: {
         return SI(register_file);
     } break;
+    case X86_REG_IP: {
+        return IP(register_file);
+    } break;
+    }
+}
+
+void set_register_value_word(struct x86_register_file* register_file, x86_reg reg, uint16_t val)
+{
+    switch (reg) {
+    case X86_REG_IP: {
+        IP(register_file) = val;
+    } break;
+    default: {
+        abort();
+    } break;
     }
 }
 
