@@ -78,7 +78,18 @@ struct operand* make_register_operand(struct register_operand* out, struct x86_r
         out->base.size = 2;
         out->reg_ptr = &reg_file->gp_regs[3];
     } break;
-
+    case X86_REG_SP: {
+        out->base.size = 2;
+        out->reg_ptr = &SP(reg_file);
+    } break;
+    case X86_REG_SS: {
+        out->base.size = 2;
+        out->reg_ptr = &SS(reg_file);
+    } break;
+    default: {
+        fprintf(stderr, "Register not yet handled.\n");
+        abort();
+    } break;
     };
     return (struct operand*)out;
 }
