@@ -32,7 +32,7 @@ add_custom_target(x86_semantics.bc ALL
         COMMAND_EXPAND_LISTS
         DEPENDS x86_semantics_bitcode)
 
-add_executable(emulator test_floppy.cpp ${SEMANTICS_SOURCES} arch/x86/lifter.cpp)
+add_executable(emulator test_floppy.cpp arch/x86/lifter.cpp arch/x86/semantics/memory.c arch/x86/semantics/register_file.c)
 target_link_libraries(emulator -lcapstone -lLLVM-14)
 add_dependencies(emulator x86_semantics.bc)
 

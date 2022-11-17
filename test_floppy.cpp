@@ -37,8 +37,6 @@ int main(int argc, char** argv)
     llvm::InitializeNativeTargetAsmParser();
     llvm::InitializeNativeTargetAsmPrinter();
 
-    llvm::LLVMContext llvm_context;
-
     // Setup System
     struct x86_register_file register_file;
     CS(&register_file) = 0x0;
@@ -56,6 +54,8 @@ int main(int argc, char** argv)
     floppy.read((char*)dest, 512);
 
     for (int i = 0; i < 4; i++) {
+        llvm::LLVMContext llvm_context;
+
         llvm::SMDiagnostic err;
         auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
         assert(semantics_module);
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
         // Setup Execution Engine
         std::string err_str = "";
-        auto exec_engine = llvm::EngineBuilder(std::move(semantics_module)).setErrorStr(&err_str).setVerifyModules(true).create();
+        std::unique_ptr<llvm::ExecutionEngine> exec_engine(llvm::EngineBuilder(std::move(semantics_module)).setErrorStr(&err_str).setVerifyModules(true).create());
 
         // lift block
         auto func = lifter.lift(CS(&register_file), IP(&register_file));

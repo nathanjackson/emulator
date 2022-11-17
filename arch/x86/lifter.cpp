@@ -41,6 +41,7 @@ lifter::lifter(llvm::Module* module,
     make_memory_operand_direct_f = module->getFunction("make_memory_operand_direct");
     assert(make_memory_operand_direct_f);
 
+
     // lookup structs
     for (auto st : module->getIdentifiedStructTypes()) {
         if (st->getName() == "struct.immediate_operand") {
@@ -72,6 +73,7 @@ lifter::~lifter()
 
 llvm::Function* lifter::lift(word segment, word addr)
 {
+
     // first, read a few bytes from the guest memory
     std::array<byte, 15> buffer;
     byte* host_ptr = reinterpret_cast<byte*>(get_host_ptr(guest_memory, segment, addr));
@@ -204,29 +206,29 @@ llvm::Function* lifter::lift(word segment, word addr)
     // terminate the guest code block
     irb->CreateRetVoid();
 
-    // inline calls to instructions
-    for (auto ci : insn_calls) {
-        llvm::InlineFunctionInfo ifi;
-        llvm::InlineFunction(*ci, ifi);
-    }
+//    // inline calls to instructions
+//    for (auto ci : insn_calls) {
+//        llvm::InlineFunctionInfo ifi;
+//        llvm::InlineFunction(*ci, ifi);
+//    }
+//
+//    // Optimization
+//    llvm::PassBuilder pass_builder;
+//    llvm::LoopAnalysisManager lam;
+//    llvm::FunctionAnalysisManager fam;
+//    llvm::CGSCCAnalysisManager cam;
+//    llvm::ModuleAnalysisManager mam;
+//
+//    pass_builder.registerModuleAnalyses(mam);
+//    pass_builder.registerCGSCCAnalyses(cam);
+//    pass_builder.registerFunctionAnalyses(fam);
+//    pass_builder.registerLoopAnalyses(lam);
+//    pass_builder.crossRegisterProxies(lam, fam, cam, mam);
+//
+//    llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
+//    mpm.run(*module, mam);
 
-    // Optimization
-    llvm::PassBuilder pass_builder;
-    llvm::LoopAnalysisManager lam;
-    llvm::FunctionAnalysisManager fam;
-    llvm::CGSCCAnalysisManager cam;
-    llvm::ModuleAnalysisManager mam;
-
-    pass_builder.registerModuleAnalyses(mam);
-    pass_builder.registerCGSCCAnalyses(cam);
-    pass_builder.registerFunctionAnalyses(fam);
-    pass_builder.registerLoopAnalyses(lam);
-    pass_builder.crossRegisterProxies(lam, fam, cam, mam);
-
-    llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
-    mpm.run(*module, mam);
-
-    //semantics_module->print(llvm::outs(), NULL);
+    //module->print(llvm::outs(), NULL);
 
     func->print(llvm::outs());
 
