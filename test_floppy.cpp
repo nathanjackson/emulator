@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     uint8_t* dest = (reinterpret_cast<uint8_t*>(memory.ptr) + 0x7C00);
     floppy.read((char*)dest, 512);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 6; i++) {
         llvm::LLVMContext llvm_context;
 
         llvm::SMDiagnostic err;
@@ -81,6 +81,10 @@ int main(int argc, char** argv)
     }
 
     std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+    std::cout << "IF=" << IF(&register_file) << "\n";
+    std::cout << "AX=" << AX(&register_file) << "\n";
+    std::cout << "SS=" << SS(&register_file) << "\n";
+    std::cout << "SP=" << SP(&register_file) << "\n";
 
     return 0;
 }

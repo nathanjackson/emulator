@@ -41,7 +41,6 @@ lifter::lifter(llvm::Module* module,
     make_memory_operand_direct_f = module->getFunction("make_memory_operand_direct");
     assert(make_memory_operand_direct_f);
 
-
     // lookup structs
     for (auto st : module->getIdentifiedStructTypes()) {
         if (st->getName() == "struct.immediate_operand") {
@@ -73,7 +72,6 @@ lifter::~lifter()
 
 llvm::Function* lifter::lift(word segment, word addr)
 {
-
     // first, read a few bytes from the guest memory
     std::array<byte, 15> buffer;
     byte* host_ptr = reinterpret_cast<byte*>(get_host_ptr(guest_memory, segment, addr));
@@ -179,6 +177,12 @@ llvm::Function* lifter::lift(word segment, word addr)
         auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0) });
         insn_calls.push_back(ci);
     } break;
+    case X86_INS_MOV: {
+        auto f = module->getFunction("x86_insn_mov");
+        assert(f);
+        auto ci = irb->CreateCall(f, { operands.at(0), operands.at(1) });
+        insn_calls.push_back(ci);
+    } break;
     case X86_INS_XOR: {
         auto f = module->getFunction("x86_insn_xor");
         assert(f);
@@ -186,7 +190,7 @@ llvm::Function* lifter::lift(word segment, word addr)
         insn_calls.push_back(ci);
     } break;
     default: {
-        std::cerr << "Instruction not yet supported\n";
+        std::cerr << "Instruction \"" << insn->mnemonic << "\" not yet supported\n";
         abort();
     } break;
     }
@@ -206,13 +210,13 @@ llvm::Function* lifter::lift(word segment, word addr)
     // terminate the guest code block
     irb->CreateRetVoid();
 
-//    // inline calls to instructions
+    // inline calls to instructions
 //    for (auto ci : insn_calls) {
 //        llvm::InlineFunctionInfo ifi;
 //        llvm::InlineFunction(*ci, ifi);
 //    }
-//
-//    // Optimization
+
+    // Optimization
 //    llvm::PassBuilder pass_builder;
 //    llvm::LoopAnalysisManager lam;
 //    llvm::FunctionAnalysisManager fam;
@@ -228,7 +232,7 @@ llvm::Function* lifter::lift(word segment, word addr)
 //    llvm::ModulePassManager mpm = pass_builder.buildPerModuleDefaultPipeline(llvm::OptimizationLevel::O2);
 //    mpm.run(*module, mam);
 
-    //module->print(llvm::outs(), NULL);
+    //semantics_module->print(llvm::outs(), NULL);
 
     func->print(llvm::outs());
 
