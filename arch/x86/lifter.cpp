@@ -159,6 +159,12 @@ llvm::Function* lifter::lift(word segment, word addr)
 
     std::vector<llvm::CallInst*> insn_calls;
     switch (insn->id) {
+     case X86_INS_CLD: {
+        auto f = module->getFunction("x86_insn_cld");
+        assert(f);
+        auto ci = irb->CreateCall(f, { register_file_arg });
+        insn_calls.push_back(ci);
+    } break;
     case X86_INS_CLI: {
         auto f = module->getFunction("x86_insn_cli");
         assert(f);
@@ -169,6 +175,12 @@ llvm::Function* lifter::lift(word segment, word addr)
         auto f = module->getFunction("x86_insn_jmp");
         assert(f);
         auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0) });
+        insn_calls.push_back(ci);
+    } break;
+    case X86_INS_XOR: {
+        auto f = module->getFunction("x86_insn_xor");
+        assert(f);
+        auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0), operands.at(1) });
         insn_calls.push_back(ci);
     } break;
     default: {

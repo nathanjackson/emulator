@@ -55,7 +55,7 @@ int main(int argc, char** argv)
     uint8_t* dest = (reinterpret_cast<uint8_t*>(memory.ptr) + 0x7C00);
     floppy.read((char*)dest, 512);
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         llvm::SMDiagnostic err;
         auto semantics_module = llvm::parseIRFile("x86_semantics.bc", err, llvm_context);
         assert(semantics_module);
