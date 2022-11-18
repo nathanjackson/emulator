@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     uint8_t* dest = (reinterpret_cast<uint8_t*>(memory.ptr) + 0x7C00);
     floppy.read((char*)dest, 512);
 
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 9; i++) {
         llvm::LLVMContext llvm_context;
 
         llvm::SMDiagnostic err;
