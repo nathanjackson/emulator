@@ -185,6 +185,12 @@ llvm::Function* lifter::lift(word segment, word addr)
         auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0) });
         insn_calls.push_back(ci);
     } break;
+    case X86_INS_LDS: {
+        auto f = module->getFunction("x86_insn_lds");
+        assert(f);
+        auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0), operands.at(1) });
+        insn_calls.push_back(ci);
+    } break;
     case X86_INS_MOV: {
         auto f = module->getFunction("x86_insn_mov");
         assert(f);

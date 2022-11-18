@@ -86,6 +86,8 @@ int main(int argc, char** argv)
     std::cout << "SS=" << SS(&register_file) << "\n";
     std::cout << "SP=" << SP(&register_file) << "\n";
     std::cout << "BX=" << BX(&register_file) << "\n";
+    std::cout << "SI=" << SI(&register_file) << "\n";
+    std::cout << "DS=" << DS(&register_file) << "\n";
 
     return 0;
 }
