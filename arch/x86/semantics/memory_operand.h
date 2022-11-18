@@ -25,7 +25,7 @@ struct memory_operand
 };
 
 struct operand* make_memory_operand_direct(struct memory_operand* out, struct memory* mem, struct x86_register_file* reg_file, size_t size, x86_reg seg, word addr);
-struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory*, struct x86_register_file*, size_t size, x86_reg seg, x86_reg);
+struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory*, struct x86_register_file*, size_t size, x86_reg seg, x86_reg, word disp);
 
 //struct operand* make_memory_operand_based(struct memory_operand* out, struct register_file* register_file, x86_reg seg, x86_reg base, word disp);
 //struct operand* make_memory_operand_indexed(struct memory_operand* out, struct register_file* register_file, x86_reg seg, x86_reg index);

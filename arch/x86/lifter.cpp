@@ -40,6 +40,8 @@ lifter::lifter(llvm::Module* module,
     assert(make_register_operand_f);
     make_memory_operand_direct_f = module->getFunction("make_memory_operand_direct");
     assert(make_memory_operand_direct_f);
+    make_memory_operand_indirect_f = module->getFunction("make_memory_operand_indirect");
+    assert(make_memory_operand_indirect_f);
 
     // lookup structs
     for (auto st : module->getIdentifiedStructTypes()) {
@@ -107,6 +109,9 @@ llvm::Function* lifter::lift(word segment, word addr)
     auto register_file_arg = func->getArg(0);
     auto memory_arg = func->getArg(1);
 
+    auto get_reg_val_f = module->getFunction("get_register_value");
+    auto set_reg_val_f = module->getFunction("set_register_value_word");
+
     // Construct operands
     std::vector<llvm::Value*> operands;
     for (int i = 0; i < insn->detail->x86.op_count; i++) {
@@ -139,12 +144,15 @@ llvm::Function* lifter::lift(word segment, word addr)
             if (X86_REG_INVALID != op.mem.segment) {
                 segment = op.mem.segment;
             }
-            auto segment_offset_value = irb->getInt64(segment_offset(segment));
+            auto segment_value = irb->getInt32(segment);
 
             auto disp_value = irb->getInt16(op.mem.disp);
 
             if (X86_REG_INVALID == op.mem.base && X86_REG_INVALID == op.mem.index) {
-                irb->CreateCall(make_memory_operand_direct_f, { op_ptr, memory_arg, register_file_arg, size_value, segment_offset_value, disp_value });
+                irb->CreateCall(make_memory_operand_direct_f,
+                                {op_ptr, memory_arg, register_file_arg, size_value, segment_value, disp_value});
+            } else if (X86_REG_INVALID != op.mem.base && X86_REG_INVALID == op.mem.index) {
+                irb->CreateCall(make_memory_operand_indirect_f, { op_ptr, memory_arg, register_file_arg, size_value, segment_value, irb->getInt32(op.mem.base), disp_value });
             } else {
                 abort();
             }
@@ -209,10 +217,7 @@ llvm::Function* lifter::lift(word segment, word addr)
 
     if (!cs_insn_group(capstone_handle, insn.get(), X86_GRP_JUMP)) {
         auto reg_val = irb->getInt32(X86_REG_IP);
-        auto get_reg_val_f = module->getFunction("get_register_value");
-        auto set_reg_val_f = module->getFunction("set_register_value_word");
         auto insn_size = irb->getInt16(insn->size);
-
         auto pc_val = irb->CreateCall(get_reg_val_f, { register_file_arg, reg_val });
         insn_calls.push_back(pc_val);
         auto new_pc_val = irb->CreateCall(set_reg_val_f, { register_file_arg, reg_val, irb->CreateAdd(pc_val, insn_size) });

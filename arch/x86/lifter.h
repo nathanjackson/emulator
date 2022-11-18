@@ -41,6 +41,7 @@ private:
     llvm::Function* make_u16_immediate_f;
     llvm::Function* make_register_operand_f;
     llvm::Function* make_memory_operand_direct_f;
+    llvm::Function* make_memory_operand_indirect_f;
 
     csh capstone_handle;
 };

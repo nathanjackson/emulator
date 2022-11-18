@@ -34,8 +34,8 @@ void x86_insn_cmpsb(struct x86_register_file* register_file, struct memory* memo
     struct memory_operand mem1;
     struct memory_operand mem2;
 
-    struct operand* lhs = make_memory_operand_indirect(&mem1, memory, register_file, sizeof(byte), X86_REG_DS, X86_REG_SI);
-    struct operand* rhs = make_memory_operand_indirect(&mem2, memory, register_file, sizeof(byte), X86_REG_ES, X86_REG_DI);
+    struct operand* lhs = make_memory_operand_indirect(&mem1, memory, register_file, sizeof(byte), X86_REG_DS, X86_REG_SI, 0);
+    struct operand* rhs = make_memory_operand_indirect(&mem2, memory, register_file, sizeof(byte), X86_REG_ES, X86_REG_DI, 0);
 
     x86_insn_cmp(register_file, lhs, rhs);
 
@@ -53,8 +53,8 @@ void x86_insn_cmpsw(struct x86_register_file* register_file, struct memory* memo
     struct memory_operand mem1;
     struct memory_operand mem2;
 
-    struct operand* lhs = make_memory_operand_indirect(&mem1, memory, register_file, sizeof(word), X86_REG_DS, X86_REG_SI);
-    struct operand* rhs = make_memory_operand_indirect(&mem2, memory, register_file, sizeof(word), X86_REG_ES, X86_REG_DI);
+    struct operand* lhs = make_memory_operand_indirect(&mem1, memory, register_file, sizeof(word), X86_REG_DS, X86_REG_SI, 0);
+    struct operand* rhs = make_memory_operand_indirect(&mem2, memory, register_file, sizeof(word), X86_REG_ES, X86_REG_DI, 0);
 
     x86_insn_cmp(register_file, lhs, rhs);
 

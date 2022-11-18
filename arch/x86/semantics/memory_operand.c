@@ -51,7 +51,7 @@ struct operand* make_memory_operand_direct(struct memory_operand* out, struct me
     return (struct operand*)out;
 }
 
-struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory* mem, struct x86_register_file* register_file, size_t size, x86_reg seg, x86_reg reg)
+struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory* mem, struct x86_register_file* register_file, size_t size, x86_reg seg, x86_reg reg, word disp)
 {
     out->base.vtable = &vtable;
     out->base.size = size;
@@ -60,7 +60,7 @@ struct operand* make_memory_operand_indirect(struct memory_operand* out, struct 
     out->register_file = register_file;
 
     out->segment_offset = segment_offset(seg);
-    out->displacement = 0;
+    out->displacement = disp;
     out->base_reg = reg;
     out->index_reg = X86_REG_INVALID;
 
