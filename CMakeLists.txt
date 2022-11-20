@@ -61,6 +61,6 @@ target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
 
 add_executable(test_utils
-        tests/utils/test_avl_tree.cpp)
+        tests/utils/test_avl_tree.cpp utils/avl_tree.c)
 target_link_libraries(test_utils -lgtest -lgtest_main)
 target_include_directories(test_utils PUBLIC ${CMAKE_SOURCE_DIR})
