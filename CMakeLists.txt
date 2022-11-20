@@ -59,3 +59,8 @@ add_executable(test_x86_semantics
     ${SEMANTICS_SOURCES} tests/arch/x86/semantics/test_imul.cpp tests/arch/x86/semantics/test_inc.cpp tests/arch/x86/semantics/test_jcc.cpp tests/arch/x86/semantics/test_jmp.cpp tests/arch/x86/semantics/test_xor.cpp tests/arch/x86/semantics/test_mov.cpp tests/arch/x86/semantics/test_push.cpp tests/arch/x86/semantics/test_pop.cpp tests/arch/x86/semantics/test_lds.cpp)
 target_link_libraries(test_x86_semantics -lgtest -lgtest_main)
 target_include_directories(test_x86_semantics PUBLIC ${CMAKE_SOURCE_DIR})
+
+add_executable(test_utils
+        tests/utils/test_avl_tree.cpp)
+target_link_libraries(test_utils -lgtest -lgtest_main)
+target_include_directories(test_utils PUBLIC ${CMAKE_SOURCE_DIR})
