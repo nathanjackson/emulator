@@ -27,7 +27,7 @@ void avl_tree_insert(struct avl_tree *tree, struct avl_node *node);
 
 void avl_tree_postorder_traversal(struct avl_tree *tree, void (*callback)(struct avl_node *));
 
-struct avl_node *avl_tree_search(struct avl_tree *tree, int (*query)(struct avl_node *node));
+struct avl_node *avl_tree_search(struct avl_tree *tree, void* callback_ref, int (*query)(struct avl_node *node, void* callback_ref));
 
 #ifdef __cplusplus
 }

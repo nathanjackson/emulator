@@ -38,7 +38,7 @@ TEST(avl_tree_tests, insert)
     x->value = 4;
     avl_tree_insert(&tree, reinterpret_cast<avl_node*>(x));
 
-    struct avl_node* search_result = avl_tree_search(&tree, [](struct avl_node* node) {
+    struct avl_node* search_result = avl_tree_search(&tree, NULL, [](struct avl_node* node, void* unused) {
         struct test_struct* test = reinterpret_cast<test_struct*>(node);
         return test->value - 4;
     });
@@ -86,7 +86,7 @@ TEST(avl_tree_tests, insert_range)
     x->sz = 512;
     avl_tree_insert(&tree, reinterpret_cast<avl_node*>(x));
 
-    struct avl_node* search_result = avl_tree_search(&tree, [](struct avl_node* node) {
+    struct avl_node* search_result = avl_tree_search(&tree, NULL, [](struct avl_node* node, void* unused) {
         struct region* test = reinterpret_cast<region*>(node);
 
         if ((test->addr < 0x30) && (0x30 <= (test->addr + test->sz - 1))) {
@@ -99,7 +99,7 @@ TEST(avl_tree_tests, insert_range)
     });
     ASSERT_TRUE(search_result);
 
-    search_result = avl_tree_search(&tree, [](struct avl_node* node) {
+    search_result = avl_tree_search(&tree, NULL, [](struct avl_node* node, void* unused) {
         struct region* test = reinterpret_cast<region*>(node);
 
         if ((test->addr < 0xFFFF) && (0xFFFF <= (test->addr + test->sz - 1))) {
