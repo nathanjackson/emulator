@@ -14,8 +14,8 @@
 #include "lifter.h"
 
 lifter::lifter(llvm::Module* module,
-               x86_register_file* register_file, struct memory* guest_memory) :
-        register_file(register_file), guest_memory(guest_memory), module(module)
+               x86_register_file* register_file, struct address_space* as) :
+        register_file(register_file), address_space(as), module(module)
 {
     // Clear attributes to enable optimization.
     for (auto& func : module->getFunctionList()) {
@@ -53,7 +53,7 @@ lifter::lifter(llvm::Module* module,
             x86_register_file_ty = st;
         } else if (st->getName() == "struct.operand") {
             operand_ty = st;
-        } else if (st->getName() == "struct.memory") {
+        } else if (st->getName() == "struct.address_space") {
             memory_ty = st;
         } else if (st->getName() == "struct.memory_operand") {
             memory_operand_ty = st;
@@ -76,8 +76,7 @@ llvm::Function* lifter::lift(word segment, word addr)
 {
     // first, read a few bytes from the guest memory
     std::array<byte, 15> buffer;
-    byte* host_ptr = reinterpret_cast<byte*>(get_host_ptr(guest_memory, segment, addr));
-    std::copy(host_ptr, host_ptr + buffer.size(), buffer.begin());
+    address_space_access_segmented(address_space, 0, segment, addr, buffer.size(), buffer.data());
 
     // create a new function for the block we're going to lift
     auto func_type = llvm::FunctionType::get(llvm::Type::getVoidTy(module->getContext()), { x86_register_file_ty->getPointerTo(), memory_ty->getPointerTo() }, false);

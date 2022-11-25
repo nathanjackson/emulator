@@ -10,23 +10,24 @@
 
 #include <capstone/capstone.h>
 
+#include "address_space.h"
+
 extern "C"
 {
-#include "semantics/memory.h"
 #include "semantics/register_file.h"
 };
 
 class lifter
 {
 public:
-    lifter(llvm::Module* module, x86_register_file* register_file, struct memory* guest_memory);
+    lifter(llvm::Module* module, x86_register_file* register_file, struct address_space* as);
     ~lifter();
 
     llvm::Function* lift(word segment, word addr);
 
 private:
     struct x86_register_file* register_file;
-    struct memory* guest_memory;
+    struct address_space* address_space;
 
     llvm::Module* module;
 

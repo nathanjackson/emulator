@@ -9,10 +9,12 @@
 
 #include <gtest/gtest.h>
 
+#include "address_space.h"
+#include "ram.h"
+
 extern "C"
 {
 #include "arch/x86/semantics/register_file.h"
-#include "arch/x86/semantics/memory.h"
 }
 
 
@@ -24,9 +26,8 @@ protected:
     struct x86_register_file _register_file;
     struct x86_register_file* register_file = &_register_file;
 
-    std::array<byte, 65536> _mem;
-    struct memory _mem_struct;
-    struct memory* mem;
+    struct address_space as;
+    struct ram ram;
 };
 
 #endif //EMULATOR_X86_SEMANTICS_TEST_H

@@ -2,11 +2,12 @@
 // Created by nathan on 11/17/22.
 //
 
-#include "register_operand.h"
-#include "memory.h"
+#include "address_space.h"
 
-void x86_insn_pop(struct x86_register_file* register_file, struct memory* memory, struct operand* op)
+#include "register_operand.h"
+
+void x86_insn_pop(struct x86_register_file* register_file, struct address_space* as, struct operand* op)
 {
-    WORD(op) = *((word*)(get_host_ptr(memory, SS(register_file), SP(register_file))));
+    address_space_access_segmented(as, 0, SS(register_file), SP(register_file), sizeof(word), &WORD(op));
     SP(register_file) += sizeof(WORD(op));
 }

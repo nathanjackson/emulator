@@ -14,8 +14,7 @@ static void* host_ptr(struct memory_operand* mem_op)
     if (X86_REG_INVALID != mem_op->index_reg) {
         offset_in_segment += get_register_value(mem_op->register_file, mem_op->index_reg);
     }
-    size_t host_offset = segment * 16 + offset_in_segment;
-    return mem_op->mem->ptr + host_offset;
+    return address_space_get_host_ptr_segmented(mem_op->as, segment, offset_in_segment);
 }
 
 static byte* byte_ptr(struct operand* op)
@@ -35,12 +34,12 @@ const static struct operand_vtable vtable = {
         .word_ptr = &word_ptr,
 };
 
-struct operand* make_memory_operand_direct(struct memory_operand* out, struct memory* mem, struct x86_register_file* reg_file, size_t size, x86_reg seg, word addr)
+struct operand* make_memory_operand_direct(struct memory_operand* out, struct address_space* as, struct x86_register_file* reg_file, size_t size, x86_reg seg, word addr)
 {
     out->base.vtable = &vtable;
     out->base.size = size;
 
-    out->mem = mem;
+    out->as = as;
     out->register_file = reg_file;
 
     out->segment_offset = segment_offset(seg);
@@ -51,12 +50,12 @@ struct operand* make_memory_operand_direct(struct memory_operand* out, struct me
     return (struct operand*)out;
 }
 
-struct operand* make_memory_operand_indirect(struct memory_operand* out, struct memory* mem, struct x86_register_file* register_file, size_t size, x86_reg seg, x86_reg reg, word disp)
+struct operand* make_memory_operand_indirect(struct memory_operand* out, struct address_space* as, struct x86_register_file* register_file, size_t size, x86_reg seg, x86_reg reg, word disp)
 {
     out->base.vtable = &vtable;
     out->base.size = size;
 
-    out->mem = mem;
+    out->as = as;
     out->register_file = register_file;
 
     out->segment_offset = segment_offset(seg);

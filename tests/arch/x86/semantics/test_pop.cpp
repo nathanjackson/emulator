@@ -4,10 +4,12 @@
 
 #include "x86_semantics_test.h"
 
+#include "address_space.h"
+
 extern "C"
 {
 #include "arch/x86/semantics/register_operand.h"
-void x86_insn_pop(struct x86_register_file*, struct memory*, struct operand*);
+void x86_insn_pop(struct x86_register_file*, struct address_space*, struct operand*);
 }
 
 TEST_F(x86_semantics_test, POP)
@@ -18,8 +20,8 @@ TEST_F(x86_semantics_test, POP)
     SS(register_file) = 0x0;
     SP(register_file) = 0xFFF9;
     word val = 0x9ABC;
-    memory_write(mem, SS(register_file), SP(register_file), sizeof(word), reinterpret_cast<byte*>(&val));
-    x86_insn_pop(register_file, mem, op);
+    address_space_access_segmented(&as, 1, SS(register_file), SP(register_file), sizeof(word), reinterpret_cast<byte*>(&val));
+    x86_insn_pop(register_file, &as, op);
     EXPECT_EQ(AX(register_file), 0x9ABC);
     EXPECT_EQ(SP(register_file), 0xFFFB);
 }

@@ -22,9 +22,17 @@ static void ram_region_write(struct region* region, uint64_t addr, size_t size, 
     memcpy(dest, buffer, size);
 }
 
+static uint8_t* ram_get_host_ptr(struct region* region, uint64_t addr)
+{
+    struct ram_region* rr = (struct ram_region*)region;
+    uint8_t* dest = rr->parent->ram + rr->phys_start + addr;
+    return dest;
+}
+
 const static struct region_vtable vtable = {
         .read = &ram_region_read,
         .write = &ram_region_write,
+        .get_host_ptr = &ram_get_host_ptr,
 };
 
 void ram_initialize(struct ram* ram, size_t size)

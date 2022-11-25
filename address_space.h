@@ -27,6 +27,7 @@ struct region_vtable
 {
     void (*read)(struct region* self, uint64_t addr, size_t size, uint8_t* buffer);
     void (*write)(struct region* self, uint64_t addr, size_t size, uint8_t* buffer);
+    uint8_t* (*get_host_ptr)(struct region* self, uint64_t addr);
 };
 
 struct address_space
@@ -61,6 +62,10 @@ void address_space_add_region(struct address_space* as, uint64_t addr, struct re
  * @param buffer the buffer for output or input
  */
 void address_space_access(struct address_space* as, int rw, uint64_t addr, size_t size, uint8_t* buffer);
+
+void address_space_access_segmented(struct address_space* as, int rw, uint16_t segment, uint16_t offset, size_t size, uint8_t* buffer);
+
+uint8_t* address_space_get_host_ptr_segmented(struct address_space*, uint16_t segment, uint16_t offset);
 
 #ifdef __cplusplus
 }

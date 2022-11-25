@@ -68,3 +68,25 @@ void address_space_access(struct address_space* as, int rw, uint64_t addr, size_
         rtd->region->vtable->read(rtd->region, region_addr, size, buffer);
     }
 }
+
+void address_space_access_segmented(struct address_space* as, int rw, uint16_t segment, uint16_t offset, size_t size, uint8_t* buffer)
+{
+    uint64_t addr = segment * 16 + offset;
+    address_space_access(as, rw, addr, size, buffer);
+}
+
+uint8_t* address_space_get_host_ptr(struct address_space* as, uint64_t addr)
+{
+    struct avl_node* node = avl_tree_search(&as->regions, &addr, &addr_lookup_query);
+    assert(node);
+
+    struct region_tree_data* rtd = node;
+    uint64_t region_addr = addr - rtd->base_addr;
+    return rtd->region->vtable->get_host_ptr(rtd->region, addr);
+}
+
+uint8_t* address_space_get_host_ptr_segmented(struct address_space* as, uint16_t segment, uint16_t offset)
+{
+    uint64_t addr = segment * 16 + offset;
+    return address_space_get_host_ptr(as, addr);
+}

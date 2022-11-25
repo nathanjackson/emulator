@@ -37,7 +37,7 @@ TEST_F(x86_semantics_test, JMP_Indirect_Reg)
 TEST_F(x86_semantics_test, JMP_Indirect_Mem)
 {
     struct memory_operand mem1;
-    struct operand* tgt = make_memory_operand_direct(&mem1, mem, register_file, 2, X86_REG_CS, 0x0110);
+    struct operand* tgt = make_memory_operand_direct(&mem1, &as, register_file, 2, X86_REG_CS, 0x0110);
 
     CS(register_file) = 0x0;
     IP(register_file) = 0x0;

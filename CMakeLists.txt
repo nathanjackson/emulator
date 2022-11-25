@@ -6,7 +6,6 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/register_operand.c
     arch/x86/semantics/memory_operand.c
     arch/x86/semantics/register_file.c
-    arch/x86/semantics/memory.c
     arch/x86/semantics/adc.c
     arch/x86/semantics/add.c
     arch/x86/semantics/aaa.c
@@ -23,18 +22,23 @@ set(SEMANTICS_SOURCES
     arch/x86/semantics/cmp.c
     arch/x86/semantics/cwd.c
     arch/x86/semantics/daa.c
-    arch/x86/semantics/das.c arch/x86/semantics/dec.c arch/x86/semantics/imul.c arch/x86/semantics/inc.c arch/x86/semantics/jcc.c arch/x86/semantics/jmp.c arch/x86/semantics/xor.c arch/x86/semantics/mov.c arch/x86/semantics/push.c arch/x86/semantics/pop.c arch/x86/semantics/lds.c)
+    arch/x86/semantics/das.c arch/x86/semantics/dec.c arch/x86/semantics/imul.c arch/x86/semantics/inc.c arch/x86/semantics/jcc.c arch/x86/semantics/jmp.c arch/x86/semantics/xor.c arch/x86/semantics/mov.c arch/x86/semantics/push.c arch/x86/semantics/pop.c arch/x86/semantics/lds.c
+
+    address_space.c utils/avl_tree.c ram.c
+        )
 
 add_library(x86_semantics_bitcode OBJECT ${SEMANTICS_SOURCES})
 target_compile_options(x86_semantics_bitcode PUBLIC -flto)
+target_include_directories(x86_semantics_bitcode PUBLIC ${CMAKE_SOURCE_DIR})
 add_custom_target(x86_semantics.bc ALL
         llvm-link -o x86_semantics.bc $<TARGET_OBJECTS:x86_semantics_bitcode>
         COMMAND_EXPAND_LISTS
         DEPENDS x86_semantics_bitcode)
 
-add_executable(emulator test_floppy.cpp arch/x86/lifter.cpp arch/x86/semantics/memory.c arch/x86/semantics/register_file.c)
+add_executable(emulator test_floppy.cpp arch/x86/lifter.cpp arch/x86/semantics/register_file.c address_space.c ram.c utils/avl_tree.c)
 target_link_libraries(emulator -lcapstone -lLLVM-14)
 add_dependencies(emulator x86_semantics.bc)
+target_include_directories(emulator PUBLIC ${CMAKE_SOURCE_DIR})
 
 add_executable(test_x86_semantics
     tests/arch/x86/semantics/x86_semantics_test.cpp
