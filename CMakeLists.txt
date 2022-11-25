@@ -69,3 +69,8 @@ add_executable(test_address_space
         tests/test_address_space.cpp utils/avl_tree.c address_space.c)
 target_link_libraries(test_address_space -lgtest -lgtest_main)
 target_include_directories(test_address_space PUBLIC ${CMAKE_SOURCE_DIR})
+
+add_executable(test_ram
+        tests/test_ram.cpp utils/avl_tree.c address_space.c ram.c)
+target_link_libraries(test_ram -lgtest -lgtest_main)
+target_include_directories(test_ram PUBLIC ${CMAKE_SOURCE_DIR})
