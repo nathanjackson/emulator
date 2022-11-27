@@ -29,7 +29,7 @@ void x86_insn_movsb(struct x86_register_file* register_file, struct address_spac
     struct operand* dest = make_memory_operand_indirect(&mem1, as, register_file, sizeof(byte), X86_REG_ES, X86_REG_DI, 0);
     struct operand* src = make_memory_operand_indirect(&mem2, as, register_file, sizeof(byte), X86_REG_DS, X86_REG_SI, 0);
 
-    BYTE(dest) = BYTE(src);
+    x86_insn_mov(dest, src);
 
     if (0 == DF(register_file)) {
         SI(register_file) += 1;
@@ -37,5 +37,24 @@ void x86_insn_movsb(struct x86_register_file* register_file, struct address_spac
     } else {
         SI(register_file) -= 1;
         DI(register_file) -= 1;
+    }
+}
+
+void x86_insn_movsw(struct x86_register_file* register_file, struct address_space* as)
+{
+    struct memory_operand mem1;
+    struct memory_operand mem2;
+
+    struct operand* dest = make_memory_operand_indirect(&mem1, as, register_file, sizeof(word), X86_REG_ES, X86_REG_DI, 0);
+    struct operand* src = make_memory_operand_indirect(&mem2, as, register_file, sizeof(word), X86_REG_DS, X86_REG_SI, 0);
+
+    x86_insn_mov(dest, src);
+
+    if (0 == DF(register_file)) {
+        SI(register_file) += 2;
+        DI(register_file) += 2;
+    } else {
+        SI(register_file) -= 2;
+        DI(register_file) -= 2;
     }
 }
