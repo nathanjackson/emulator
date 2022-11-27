@@ -82,9 +82,17 @@ struct operand* make_register_operand(struct register_operand* out, struct x86_r
         out->base.size = 2;
         out->reg_ptr = &SI(reg_file);
     } break;
+    case X86_REG_DI: {
+        out->base.size = 2;
+        out->reg_ptr = &DI(reg_file);
+    } break;
     case X86_REG_SP: {
         out->base.size = 2;
         out->reg_ptr = &SP(reg_file);
+    } break;
+    case X86_REG_DS: {
+        out->base.size = 2;
+        out->reg_ptr = &DS(reg_file);
     } break;
     case X86_REG_SS: {
         out->base.size = 2;

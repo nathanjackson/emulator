@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     uint8_t* dest = address_space_get_host_ptr_segmented(&memory_as, 0x0, 0x7c00);
     floppy.read((char*)dest, 512);
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 16; i++) {
         llvm::LLVMContext llvm_context;
 
         llvm::SMDiagnostic err;
@@ -92,6 +92,7 @@ int main(int argc, char** argv)
     std::cout << "BX=" << BX(&register_file) << "\n";
     std::cout << "SI=" << SI(&register_file) << "\n";
     std::cout << "DS=" << DS(&register_file) << "\n";
+    std::cout << "CX=" << CX(&register_file) << "\n";
 
     return 0;
 }
