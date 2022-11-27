@@ -61,7 +61,7 @@ int main(int argc, char** argv)
     uint8_t* dest = address_space_get_host_ptr_segmented(&memory_as, 0x0, 0x7c00);
     floppy.read((char*)dest, 512);
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 17; i++) {
         llvm::LLVMContext llvm_context;
 
         llvm::SMDiagnostic err;

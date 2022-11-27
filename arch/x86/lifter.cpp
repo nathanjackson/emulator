@@ -214,6 +214,14 @@ llvm::Function* lifter::lift(word segment, word addr)
         auto ci = irb->CreateCall(f, { register_file_arg, operands.at(0), operands.at(1) });
         insn_calls.push_back(ci);
     } break;
+    case X86_INS_MOVSB: {
+        std::cerr << "MOVSB not yet implemented\n";
+        abort();
+    } break;
+    case X86_INS_MOVSW: {
+        std::cerr << "MOVSW not yet implemented\n";
+        abort();
+    } break;
     default: {
         std::cerr << "Instruction \"" << insn->mnemonic << "\" not yet supported\n";
         abort();
