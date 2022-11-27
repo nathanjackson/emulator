@@ -16,6 +16,15 @@ uint16_t get_register_value(struct x86_register_file* register_file, x86_reg reg
     case X86_REG_AX: {
         return AX(register_file);
     } break;
+    case X86_REG_BL: {
+        return BL(register_file);
+    } break;
+    case X86_REG_BH: {
+        return BH(register_file);
+    } break;
+    case X86_REG_BX: {
+        return BX(register_file);
+    } break;
     case X86_REG_DI: {
         return DI(register_file);
     } break;
@@ -24,6 +33,9 @@ uint16_t get_register_value(struct x86_register_file* register_file, x86_reg reg
     } break;
     case X86_REG_IP: {
         return IP(register_file);
+    } break;
+    default: {
+        abort();
     } break;
     }
 }

@@ -256,7 +256,7 @@ llvm::Function* lifter::lift(word segment, word addr)
 
     //semantics_module->print(llvm::outs(), NULL);
 
-    func->print(llvm::outs());
+    //func->print(llvm::outs());
 
     return func;
 }

@@ -35,7 +35,7 @@ add_custom_target(x86_semantics.bc ALL
         COMMAND_EXPAND_LISTS
         DEPENDS x86_semantics_bitcode)
 
-add_executable(emulator test_floppy.cpp arch/x86/lifter.cpp arch/x86/semantics/register_file.c address_space.c ram.c utils/avl_tree.c)
+add_executable(emulator test_floppy.cpp arch/x86/lifter.cpp arch/x86/semantics/register_file.c address_space.c ram.c utils/avl_tree.c arch/x86/bios.cpp)
 target_link_libraries(emulator -lcapstone -lLLVM-14)
 add_dependencies(emulator x86_semantics.bc)
 target_include_directories(emulator PUBLIC ${CMAKE_SOURCE_DIR})

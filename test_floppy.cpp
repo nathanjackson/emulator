@@ -15,6 +15,7 @@
 #include <capstone/capstone.h>
 
 #include "arch/x86/lifter.h"
+#include "arch/x86/bios.h"
 #include "address_space.h"
 #include "ram.h"
 
@@ -43,12 +44,15 @@ int main(int argc, char** argv)
     CS(&register_file) = 0x0;
     IP(&register_file) = 0x7C00;
 
+    // Setup Memory
     struct address_space memory_as;
     address_space_initialize(&memory_as, 0xFFFFFFFF);
-
     struct ram ram;
     ram_initialize(&ram, 0xA0000);
     ram_map_conventional_memory(&ram, &memory_as);
+
+    // BIOS
+    bios_initialize(&memory_as);
 
     // Load boot sector into memory at 0000:7C00
     std::ifstream floppy;
@@ -79,20 +83,20 @@ int main(int argc, char** argv)
         auto guest_block = reinterpret_cast<void(*)(struct x86_register_file*, struct address_space*)>(exec_engine->getFunctionAddress(func->getName().str()));
         assert(guest_block);
 
-        std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+//        std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
         // run it!
         guest_block(&register_file, &memory_as);
+        std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
+        std::cout << "IF=" << IF(&register_file) << "\n";
+        std::cout << "AX=" << AX(&register_file) << "\n";
+        std::cout << "SS=" << SS(&register_file) << "\n";
+        std::cout << "SP=" << SP(&register_file) << "\n";
+        std::cout << "BX=" << BX(&register_file) << "\n";
+        std::cout << "SI=" << SI(&register_file) << "\n";
+        std::cout << "DI=" << DI(&register_file) << "\n";
+        std::cout << "DS=" << DS(&register_file) << "\n";
+        std::cout << "ES=" << ES(&register_file) << "\n";
+        std::cout << "CX=" << CX(&register_file) << "\n";
     }
-
-    std::cout << "CS=0x" << std::hex << CS(&register_file) << " IP=0x" << IP(&register_file) << "\n";
-    std::cout << "IF=" << IF(&register_file) << "\n";
-    std::cout << "AX=" << AX(&register_file) << "\n";
-    std::cout << "SS=" << SS(&register_file) << "\n";
-    std::cout << "SP=" << SP(&register_file) << "\n";
-    std::cout << "BX=" << BX(&register_file) << "\n";
-    std::cout << "SI=" << SI(&register_file) << "\n";
-    std::cout << "DS=" << DS(&register_file) << "\n";
-    std::cout << "CX=" << CX(&register_file) << "\n";
-
     return 0;
 }
